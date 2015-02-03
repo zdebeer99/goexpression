@@ -26,6 +26,7 @@ func TestMathEval(t *testing.T) {
 		{"2-3+4-2", false, 2 - 3 + 4 - 2},
 		{"2.4*3+1.5*2-3.1*4-1+2", false, 2.4*3 + 1.5*2 - 3.1*4 - 1 + 2},
 	}
+
 	for i, v := range tests {
 		ans := Eval(v.input)
 		//t.Log(i, ") ", v.input, "=", ans, " Expecting:", v.result)
