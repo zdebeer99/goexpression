@@ -2,8 +2,9 @@
 
 version: 0.01
 
-go expresion is a very basic expression parser and evaluator. This project is in
-alpha phase and my change significantly in the near future.
+go expression is a basic math expression parser and evaluator. This project is in
+alpha phase and may change significantly in the near future.
+
 
 ## Status
 
@@ -18,8 +19,10 @@ alpha phase and my change significantly in the near future.
 - Support for grouping ()
 - Support for variables
 
-## Basic useage
+## Basic usage
 
     ans:=goexpression.Eval("1+2")
 	fmt.Printf("1+2=%v",ans)
 
+
+The MIT License (MIT)

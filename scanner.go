@@ -15,6 +15,7 @@ func (p Pos) Position() Pos {
 
 const eof = -1
 
+//Scanner, Iterates through a string.
 type Scanner struct {
 	input      string
 	start      Pos
@@ -25,6 +26,7 @@ type Scanner struct {
 	safebackup bool //insure backup is called only once after next.
 }
 
+// NewScanner Creates a New Scanner pointer.
 func NewScanner(template string) *Scanner {
 	return &Scanner{input: template}
 }
@@ -56,24 +58,24 @@ func (this *Scanner) Next() rune {
 	return r
 }
 
-//Peek returns but does not consume the next rune in the input.
+// Peek returns but does not consume the next rune in the input.
 func (this *Scanner) Peek() rune {
 	r := this.Next()
 	this.Backup()
 	return r
 }
 
-//Backup steps back one rune. Can only be called once per call of next.
+// Backup steps back one rune. Can only be called once per call of next.
 func (this *Scanner) Backup() {
 	this.pos -= this.width
 }
 
-// restart move the curr pos back to the start pos.
+// Rollback move the curr pos back to the start pos.
 func (this *Scanner) Rollback() {
 	this.LoadState(this.prevState)
 }
 
-// ignore skips over the pending input before this point.
+// Ignore skips over the pending input before this point.
 func (this *Scanner) Ignore() {
 	this.start = this.pos
 }
