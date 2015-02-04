@@ -2,47 +2,51 @@ package goexpression
 
 import (
 	"fmt"
+	s "github.com/zdebeer99/goexpression/scanner"
 	"strings"
 )
 
 //TODO: Implement Stack to handle drill into functions.
 
 type parser struct {
-	scan  *Scanner
-	root  Node
-	curr  Node
+	scan  *s.Scanner
+	root  *s.TreeNode
+	curr  *s.TreeNode
 	err   error
 	state func() bool
 }
 
-func Parse(input string) Node {
-	root := NewBaseNode(NodeEmpty, CatOther)
-	parse := &parser{NewScanner(input), root, root, nil, nil}
+func Parse(input string) *s.TreeNode {
+	root := s.NewTreeNode(s.NewEmptyToken())
+	parse := &parser{s.NewScanner(input), root, root, nil, nil}
 	parse.parse()
 	return root
+}
+
+func (this *parser) getValue() s.Token {
+	if this.curr != nil {
+		return this.curr.Value
+	}
+	return nil
 }
 
 func (this *parser) parse() {
 	this.parseExpresion()
 }
 
-func (this *parser) add(node Node) Node {
-	return this.curr.Add(node)
+func (this *parser) add(token s.Token) *s.TreeNode {
+	return this.curr.Add(token)
 }
 
-func (this *parser) stack(node Node) Node {
-	return this.curr.Stack(node)
+func (this *parser) push(token s.Token) *s.TreeNode {
+	return this.curr.Push(token)
 }
 
-func (this *parser) push(node Node) Node {
-	return this.curr.Push(node)
+func (this *parser) lastNode() *s.TreeNode {
+	return this.curr.LastElement()
 }
 
-func (this *parser) lastNode() Node {
-	return this.curr.LastItem()
-}
-
-func (this *parser) parentNode() Node {
+func (this *parser) parentNode() *s.TreeNode {
 	return this.curr.Parent()
 }
 
@@ -53,8 +57,8 @@ func (l *parser) error(err interface{}) {
 	} else {
 		text = err.(string)
 	}
-	debug := fmt.Errorf("Line: %v, Error: %s", l.scan.lineNumber(), text)
-	l.add(NewErrorNode(debug.Error()))
+	debug := fmt.Errorf("Line: %v, Error: %s", l.scan.LineNumber(), text)
+	l.add(s.NewErrorToken(debug.Error()))
 	l.err = debug
 }
 
@@ -75,7 +79,7 @@ func (this *parser) parseExpresion() bool {
 		}
 
 		r := scan.Next()
-		if IsSpace(r) {
+		if s.IsSpace(r) {
 			scan.Ignore()
 			continue
 		}
@@ -91,12 +95,12 @@ func (this *parser) parseExpresion() bool {
 func (this *parser) parseValue() bool {
 	scan := this.scan
 	if scan.ScanNumber() {
-		this.add(NewNumberNode(scan.Commit()))
+		this.add(s.NewNumberToken(scan.Commit()))
 		this.state = this.parseLRFunc
 		return true
 	}
 	if scan.ScanWord() {
-		this.add(NewIdentityNode(scan.Commit()))
+		this.add(s.NewIdentityToken(scan.Commit()))
 		this.state = this.parseLRFunc
 		return true
 	}
@@ -108,18 +112,18 @@ func (this *parser) parseLRFunc() bool {
 	if scan.Accept("+-/*") {
 		operator := scan.Commit()
 		lastnode := this.lastNode()
-		onode, ok := this.curr.(*FuncNode)
+		onode, ok := this.getValue().(*s.FuncToken)
 		//push excisting operator
 		if ok {
 			//operator is the same as the previous one.
-			if onode.name == operator {
+			if onode.Name == operator {
 				this.state = this.parseValue
 				return true
 			}
 			//change order for */ presedence
 			if onode.OperatorPrecedence(operator) > 0 {
-				if lastnode != nil && lastnode.NodeCat() == CatValue {
-					this.curr = lastnode.Push(NewFuncNode(operator))
+				if lastnode != nil && lastnode.Value.Category() == s.CatValue {
+					this.curr = lastnode.Push(s.NewFuncToken(operator))
 					this.state = this.parseValue
 					return true
 				}
@@ -127,22 +131,22 @@ func (this *parser) parseLRFunc() bool {
 			//after */ presedence continue pushing +- operators from the bottom.
 			if onode.OperatorPrecedence(operator) < 0 {
 				for {
-					v1, ok := this.curr.Parent().(*FuncNode)
-					if ok && strings.Index("+-", v1.name) >= 0 {
-						this.curr = v1
+					v1, ok := this.curr.Parent().Value.(*s.FuncToken)
+					if ok && strings.Index("+-", v1.Name) >= 0 {
+						this.curr = this.curr.Parent()
 					} else {
 						break
 					}
 				}
 			}
 			//standard operator push
-			this.curr = this.push(NewFuncNode(operator))
+			this.curr = this.push(s.NewFuncToken(operator))
 			this.state = this.parseValue
 			return true
 		}
 		//push as operator argument
 		if lastnode != nil {
-			this.curr = lastnode.Push(NewFuncNode(operator))
+			this.curr = lastnode.Push(s.NewFuncToken(operator))
 			this.state = this.parseValue
 		} else {
 			this.error(fmt.Sprintf("Expecting a value before operator %q", operator))

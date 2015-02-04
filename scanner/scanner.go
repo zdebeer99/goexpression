@@ -1,4 +1,4 @@
-package goexpression
+package scanner
 
 import (
 	"strings"
@@ -145,7 +145,7 @@ func (this *Scanner) SkipToNewLine() {
 // lineNumber reports which line we're on, based on the position of
 // the previous item returned by nextItem. Doing it this way
 // means we don't have to worry about peek double counting.
-func (this *Scanner) lineNumber() int {
+func (this *Scanner) LineNumber() int {
 	return 1 + strings.Count(this.input[:this.pos], "\n")
 }
 

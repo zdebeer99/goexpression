@@ -1,6 +1,7 @@
 package goexpression
 
 import (
+	s "github.com/zdebeer99/goexpression/scanner"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ type TestValue struct {
 func TestParseExpression(t *testing.T) {
 	//These tests only test parsing scenarios, eval tests can better tests for algorithmic correctness.
 	var testValues []TestValue = []TestValue{
-		{"", false, "[Base()]"},
+		{"", false, "Base()"},
 		{"1", false, "[Base():Number(1)]"},                                                                       //1 test basic parse
 		{"-1", false, "[Base():Number(-1)]"},                                                                     //2 test negative parse
 		{"1+2", false, "[Base():[Func(+):Number(1),Number(2)]]"},                                                 //3 test basic expression
@@ -67,7 +68,7 @@ func TestScanNumber(t *testing.T) {
 			//ignore error inputs for now, need to test them in the future.
 			continue
 		}
-		scan := NewScanner(v.value)
+		scan := s.NewScanner(v.value)
 		r1 := scan.ScanNumber()
 		if r1 {
 			res1 := scan.Commit()

@@ -1,4 +1,4 @@
-package goexpression
+package scanner
 
 import (
 	"strings"

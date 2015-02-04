@@ -1,7 +1,12 @@
 package goexpression
 
+import (
+	"container/list"
+	s "github.com/zdebeer99/goexpression/scanner"
+)
+
 type expression struct {
-	ast Node
+	ast *s.TreeNode
 }
 
 // Bug(zdebeer): functions is eval from right to left instead from left to right.
@@ -11,58 +16,68 @@ func Eval(input string) float64 {
 }
 
 func (this *expression) eval() float64 {
-	for _, node := range this.ast.Items() {
-		switch node.NodeCat() {
-		case CatFunction:
-			return this.switchFunction(node.(*FuncNode))
-		case CatValue:
+	for el := this.ast.FirstChild(); el != nil; el = el.Next() {
+		node, ok := el.Value.(*s.TreeNode)
+		if !ok {
+			panic("Invalid Type stored in tree")
+		}
+		switch node.Value.Category() {
+		case s.CatFunction:
+			return this.switchFunction(node)
+		case s.CatValue:
 			return this.getNumber(node)
 		}
 	}
-	panic(":(")
+	panic("eval failed. f.")
 }
 
-func (this *expression) switchFunction(fnode *FuncNode) float64 {
-	switch fnode.name {
+func (this *expression) switchFunction(node *s.TreeNode) float64 {
+	val1 := node.Value.(*s.FuncToken)
+	switch val1.Name {
 	case "+":
-		return this.evalMathOperator(this.evalMathPlus, fnode.Items())
+		return this.evalMathOperator(this.evalMathPlus, node.FirstChild())
 	case "-":
-		return this.evalMathOperator(this.evalMathMinus, fnode.Items())
+		return this.evalMathOperator(this.evalMathMinus, node.FirstChild())
 	case "*":
-		return this.evalMathOperator(this.evalMathMultiply, fnode.Items())
+		return this.evalMathOperator(this.evalMathMultiply, node.FirstChild())
 	case "/":
-		return this.evalMathOperator(this.evalMathDevide, fnode.Items())
+		return this.evalMathOperator(this.evalMathDevide, node.FirstChild())
 	default:
 		panic("Function not supported")
 	}
 
 }
 
-func (this *expression) getNumber(val Node) float64 {
-	switch v := val.(type) {
-	case *NumberNode:
-		return v.value
-	case *FuncNode:
-		return this.switchFunction(v)
+func (this *expression) getNumber(val *s.TreeNode) float64 {
+	switch v := val.Value.(type) {
+	case *s.NumberToken:
+		return v.Value
+	case *s.FuncToken:
+		return this.switchFunction(val)
 	default:
 		panic(":(")
 	}
 }
 
-func (this *expression) evalMathOperator(fn func(float64, float64) float64, args []Node) float64 {
-	cnt := len(args)
-	switch {
-	case cnt < 2:
+func (this *expression) evalMathOperator(fn func(float64, float64) float64, args *list.Element) float64 {
+
+	arg1 := args.Value.(*s.TreeNode)
+	args = args.Next()
+	if args == nil {
 		panic("Operator Missing Arguments.")
-	case cnt == 2:
-		return fn(this.getNumber(args[0]), this.getNumber(args[1]))
-	default:
-		answ := fn(this.getNumber(args[0]), this.getNumber(args[1]))
-		for i := 2; i < cnt; i++ {
-			answ = fn(answ, this.getNumber(args[i]))
-		}
-		return answ
 	}
+	arg2 := args.Value.(*s.TreeNode)
+	args = args.Next()
+	if args == nil {
+		return fn(this.getNumber(arg1), this.getNumber(arg2))
+	}
+
+	answ := fn(this.getNumber(arg1), this.getNumber(arg2))
+	for ; args != nil; args = args.Next() {
+		arg3 := args.Value.(*s.TreeNode)
+		answ = fn(answ, this.getNumber(arg3))
+	}
+	return answ
 }
 
 func (this *expression) evalMathPlus(val1, val2 float64) float64 {
