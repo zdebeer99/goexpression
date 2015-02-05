@@ -1,7 +1,6 @@
-package scanner
+package goexpression
 
 import (
-	"container/list"
 	"fmt"
 	"strings"
 )
@@ -9,12 +8,12 @@ import (
 type TreeNode struct {
 	Value  Token
 	parent *TreeNode
-	items  *list.List
+	items  []*TreeNode
 }
 
 // NewTreeElement Creates a new TreeElement.
 func NewTreeNode(value Token) *TreeNode {
-	return &TreeNode{value, nil, list.New()}
+	return &TreeNode{value, nil, make([]*TreeNode, 0)}
 }
 
 // Parent Returns the current element parent
@@ -26,21 +25,16 @@ func (this *TreeNode) Parent() *TreeNode {
 // Warning: does not add the node as a child
 func (this *TreeNode) setParent(element *TreeNode) {
 	if this.parent != nil {
-		this.parent.RemoveChild(this)
-		this.parent = nil
+		panic("TreeNode Already attached to a parent node.")
 	}
 	this.parent = element
 }
 
 func (this *TreeNode) LastElement() *TreeNode {
-	if this.items.Len() == 0 {
+	if len(this.items) == 0 {
 		return nil
 	}
-	r1, ok := this.items.Back().Value.(*TreeNode)
-	if !ok {
-		panic("Expecting TreeElement as child node.")
-	}
-	return r1
+	return this.items[len(this.items)-1]
 }
 
 func (this *TreeNode) Last() Token {
@@ -51,14 +45,14 @@ func (this *TreeNode) Last() Token {
 	return nil
 }
 
-func (this *TreeNode) FirstChild() *list.Element {
-	return this.items.Front()
+func (this *TreeNode) Items() []*TreeNode {
+	return this.items
 }
 
 // Add adds a TreeElement to the end of the children items of the current node.
 func (this *TreeNode) AddElement(element *TreeNode) *TreeNode {
 	element.setParent(this)
-	this.items.PushBack(element)
+	this.items = append(this.items, element)
 	return element
 }
 
@@ -79,8 +73,8 @@ func (this *TreeNode) PushElement(element *TreeNode) *TreeNode {
 	parent := this.Parent()
 	if parent != nil {
 		//replace the current node with the new node
-		listelement := parent.findChildElement(this)
-		listelement.Value = element
+		index := parent.indexOf(this)
+		parent.items[index] = element
 		element.setParent(parent)
 		this.parent = nil
 	}
@@ -94,53 +88,51 @@ func (this *TreeNode) Push(value Token) *TreeNode {
 }
 
 //FindChildElement Finds a child element in the current nodes children
-func (this *TreeNode) findChildElement(element *TreeNode) *list.Element {
-	for e := this.items.Front(); e != nil; e = e.Next() {
-		if e.Value == element {
-			return e
+func (this *TreeNode) indexOf(element *TreeNode) int {
+	for i, v := range this.items {
+		if v == element {
+			return i
 		}
 	}
-	return nil
+	return -1
 }
 
-//FindChild Finds a child element in the current nodes children
-func (this *TreeNode) FindChildElement(element *TreeNode) *TreeNode {
-	listelement := this.findChildElement(element)
-	if listelement == nil {
-		return nil
-	}
-	r1, ok := listelement.Value.(*TreeNode)
-	if ok {
-		return r1
-	}
-	panic("Wrong Type, expecting element type to be of type '*TreeElement'")
-}
+////FindChild Finds a child element in the current nodes children
+//func (this *TreeNode) FindChildElement(element *TreeNode) *TreeNode {
+//	listelement := this.findChildElement(element)
+//	if listelement == nil {
+//		return nil
+//	}
+//	r1, ok := listelement.Value.(*TreeNode)
+//	if ok {
+//		return r1
+//	}
+//	panic("Wrong Type, expecting element type to be of type '*TreeElement'")
+//}
 
-func (this *TreeNode) RemoveChild(element *TreeNode) {
-	listelement := this.findChildElement(element)
-	if listelement == nil {
-		panic("Element not found.")
-	}
-	this.items.Remove(listelement)
-}
+//func (this *TreeNode) RemoveChild(element *TreeNode) {
+//	listelement := this.findChildElement(element)
+//	if listelement == nil {
+//		panic("Element not found.")
+//	}
+//	this.items.Remove(listelement)
+//}
 
-//FindChildValue Finds a chile value in the current nodes children.
-func (this *TreeNode) FindChild(value Token) *TreeNode {
-	for e := this.items.Front(); e != nil; e = e.Next() {
-		telement, ok := e.Value.(*TreeNode)
-		if ok && telement.Value == value {
-			return telement
-		}
-	}
-	return nil
-}
+////FindChildValue Finds a chile value in the current nodes children.
+//func (this *TreeNode) FindChild(value Token) *TreeNode {
+//	for e := this.items.Front(); e != nil; e = e.Next() {
+//		telement, ok := e.Value.(*TreeNode)
+//		if ok && telement.Value == value {
+//			return telement
+//		}
+//	}
+//	return nil
+//}
 
 func (this *TreeNode) StringContent() string {
-	lines := make([]string, this.items.Len())
-	k := 0
-	for item := this.items.Front(); item != nil; item = item.Next() {
-		lines[k] = item.Value.(*TreeNode).String()
-		k++
+	lines := make([]string, len(this.items))
+	for i, v := range this.items {
+		lines[i] = v.String()
 	}
 	if this.Value.Error() != nil {
 		return fmt.Sprintf("[ERROR: %s]", this.Value.Error())

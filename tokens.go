@@ -1,4 +1,4 @@
-package scanner
+package goexpression
 
 import (
 	"fmt"
@@ -63,7 +63,7 @@ func NewNumberToken(value string) *NumberToken {
 	node := &NumberToken{EmptyToken{CatValue, nil}, 0}
 	val1, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		panic("Number node failed to parse string to number")
+		panic("Number node failed to parse string to number. (" + value + ")")
 		return node
 	}
 	node.Value = val1

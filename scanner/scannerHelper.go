@@ -30,6 +30,10 @@ func IsQoute(r rune) bool {
 	return strings.IndexRune("\"'", r) >= 0
 }
 
+func HasChar(r rune, accept string) bool {
+	return strings.IndexRune(accept, r) >= 0
+}
+
 func (this *Scanner) Scan(valid func(r rune) bool) bool {
 	var isvalid bool
 	for valid(this.Next()) {

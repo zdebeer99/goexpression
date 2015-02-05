@@ -1,7 +1,7 @@
 package goexpression
 
 import (
-	s "github.com/zdebeer99/goexpression/scanner"
+	s "./scanner"
 	"testing"
 )
 
@@ -40,9 +40,12 @@ func TestParseExpression(t *testing.T) {
 		{"1-2+3*4/6", false, "[Base():[Func(+):[Func(-):Number(1),Number(2)],[Func(/):[Func(*):Number(3),Number(4)],Number(6)]]]"},                                                                               //23
 		{"1-2+3*4/6+7-8", false, "[Base():[Func(-):[Func(+):[Func(+):[Func(-):Number(1),Number(2)],[Func(/):[Func(*):Number(3),Number(4)],Number(6)]],Number(7)],Number(8)]]"},                                   //24
 		{"1+2+3*4*5*6/7/8-9-10-11-12", false, "[Base():[Func(-):[Func(+):Number(1),Number(2),[Func(/):[Func(*):Number(3),Number(4),Number(5),Number(6)],Number(7),Number(8)]],Number(9),Number(10),Number(11),Number(12)]]"},
+		{"3*(1+2)", false, "[Base():[Func(*):Number(3),[Group(()):[Func(+):Number(1),Number(2)]]]]"},             //26
+		{"(1+2)*3", false, "[Base():[Func(*):[Group(()):[Func(+):Number(1),Number(2)]],Number(3)]]"},             //27
+		{"4*(1+2)*3", false, "[Base():[Func(*):Number(4),[Group(()):[Func(+):Number(1),Number(2)]],Number(3)]]"}, //28
 	}
 
-	for i, v := range testValues {
+	for i, v := range testValues[26:] {
 		node := Parse(v.value)
 		if node.String() != v.result {
 			t.Errorf("%v. %q:\nparsed to:%q\nexpected :%q\n\n", i, v.value, node, v.result)
