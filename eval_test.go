@@ -10,7 +10,7 @@ type mathTestValue struct {
 	result   float64
 }
 
-func _TestMathEval(t *testing.T) {
+func TestMathEval(t *testing.T) {
 	var tests []mathTestValue = []mathTestValue{
 		{"1+1", false, 2},
 		{"-1+2", false, 1},
@@ -25,6 +25,9 @@ func _TestMathEval(t *testing.T) {
 		{"4+3-2+1", false, 4 + 3 - 2 + 1},
 		{"2-3+4-2", false, 2 - 3 + 4 - 2},
 		{"2.4*3+1.5*2-3.1*4-1+2", false, 2.4*3 + 1.5*2 - 3.1*4 - 1 + 2},
+		{"(1+2)*3", false, (1 + 2) * 3},
+		{"3*(1+2)", false, 3 * (1 + 2)},
+		{"3*(1+2)*4", false, 3 * (1 + 2) * 4},
 	}
 
 	for i, v := range tests {

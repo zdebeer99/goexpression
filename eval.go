@@ -7,19 +7,32 @@ type expression struct {
 // Bug(zdebeer): functions is eval from right to left instead from left to right.
 func Eval(input string) float64 {
 	expr := &expression{Parse(input)}
-	return expr.eval()
+	return expr.eval(expr.ast)
 }
 
-func (this *expression) eval() float64 {
-	for _, node := range this.ast.items {
+func (this *expression) eval(basenode *TreeNode) float64 {
+	for _, node := range basenode.items {
 		switch node.Value.Category() {
 		case CatFunction:
 			return this.switchFunction(node)
 		case CatValue:
 			return this.getNumber(node)
+		case CatOther:
+			this.switchOther(node)
 		}
 	}
 	panic("eval failed. f.")
+}
+
+func (this *expression) switchOther(node *TreeNode) {
+	switch v1 := node.Value.(type) {
+	case *GroupToken:
+		if v1.GroupType == "()" {
+			this.eval(node)
+			return
+		}
+	}
+	panic("Invalid Node " + node.String())
 }
 
 func (this *expression) switchFunction(node *TreeNode) float64 {
@@ -39,14 +52,19 @@ func (this *expression) switchFunction(node *TreeNode) float64 {
 
 }
 
-func (this *expression) getNumber(val *TreeNode) float64 {
-	switch v := val.Value.(type) {
+func (this *expression) getNumber(node *TreeNode) float64 {
+	switch v := node.Value.(type) {
 	case *NumberToken:
 		return v.Value
 	case *FuncToken:
-		return this.switchFunction(val)
+		return this.switchFunction(node)
+	case *GroupToken:
+		if v.GroupType == "()" {
+			return this.eval(node)
+		}
+		panic("Unexpected grouping type: " + node.String())
 	default:
-		panic(":(")
+		panic("Unexpected value: " + node.String())
 	}
 }
 

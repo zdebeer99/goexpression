@@ -10,19 +10,19 @@ The purpose is to learn go and use the expression parser in other projects.
 
 ## Status
 
-**Current Support**
+**Supported**
 
 - Basic Math Operators like '+', '-', '*', '/'
 - Operator precedence, Ex: 1+2*3 = 1+6 = 7
-
-
-**Planned Futures**
-
 - grouping () Ex: (1+2)*3
+
+**Planned**
+
 - variables Ex: 1+x where x is passed as a variable to Eval.
 - Boolean types and expressions like '==', '<', '>', '!', 'and', 'or'
 - Special keywords like. if, each, etc
 - Calling go functions from the expression
+
 
 ## Basic usage
 
