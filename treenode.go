@@ -97,38 +97,6 @@ func (this *TreeNode) indexOf(element *TreeNode) int {
 	return -1
 }
 
-////FindChild Finds a child element in the current nodes children
-//func (this *TreeNode) FindChildElement(element *TreeNode) *TreeNode {
-//	listelement := this.findChildElement(element)
-//	if listelement == nil {
-//		return nil
-//	}
-//	r1, ok := listelement.Value.(*TreeNode)
-//	if ok {
-//		return r1
-//	}
-//	panic("Wrong Type, expecting element type to be of type '*TreeElement'")
-//}
-
-//func (this *TreeNode) RemoveChild(element *TreeNode) {
-//	listelement := this.findChildElement(element)
-//	if listelement == nil {
-//		panic("Element not found.")
-//	}
-//	this.items.Remove(listelement)
-//}
-
-////FindChildValue Finds a chile value in the current nodes children.
-//func (this *TreeNode) FindChild(value Token) *TreeNode {
-//	for e := this.items.Front(); e != nil; e = e.Next() {
-//		telement, ok := e.Value.(*TreeNode)
-//		if ok && telement.Value == value {
-//			return telement
-//		}
-//	}
-//	return nil
-//}
-
 func (this *TreeNode) StringContent() string {
 	lines := make([]string, len(this.items))
 	for i, v := range this.items {

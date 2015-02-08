@@ -1,12 +1,17 @@
 package goexpression
 
 type expression struct {
-	ast *TreeNode
+	ast     *TreeNode
+	context map[string]interface{}
 }
 
 // Bug(zdebeer): functions is eval from right to left instead from left to right.
-func Eval(input string) float64 {
-	expr := &expression{Parse(input)}
+func Eval(input string, context map[string]interface{}) float64 {
+	node, err := Parse(input)
+	if err != nil {
+		panic(err)
+	}
+	expr := &expression{node, context}
 	return expr.eval(expr.ast)
 }
 
@@ -56,6 +61,9 @@ func (this *expression) getNumber(node *TreeNode) float64 {
 	switch v := node.Value.(type) {
 	case *NumberToken:
 		return v.Value
+	case *IdentityToken:
+		r1 := this.getValue(v)
+		return this.toFloat64(r1)
 	case *FuncToken:
 		return this.switchFunction(node)
 	case *GroupToken:
@@ -98,4 +106,26 @@ func (this *expression) evalMathMultiply(val1, val2 float64) float64 {
 
 func (this *expression) evalMathDevide(val1, val2 float64) float64 {
 	return val1 / val2
+}
+
+//Get a value from the context.
+func (this *expression) getValue(token *IdentityToken) interface{} {
+	return this.context[token.Name]
+}
+
+func (this *expression) toFloat64(value interface{}) float64 {
+	switch i := value.(type) {
+	case float64:
+		return i
+	case float32:
+		return float64(i)
+	case int64:
+		return float64(i)
+	case int32:
+		return float64(i)
+	case int:
+		return float64(i)
+	default:
+		panic("toFloat: unknown value is of incompatible type")
+	}
 }

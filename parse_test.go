@@ -40,13 +40,27 @@ func TestParseExpression(t *testing.T) {
 		{"1-2+3*4/6", false, "[Base():[Func(+):[Func(-):Number(1),Number(2)],[Func(/):[Func(*):Number(3),Number(4)],Number(6)]]]"},                                                                               //23
 		{"1-2+3*4/6+7-8", false, "[Base():[Func(-):[Func(+):[Func(+):[Func(-):Number(1),Number(2)],[Func(/):[Func(*):Number(3),Number(4)],Number(6)]],Number(7)],Number(8)]]"},                                   //24
 		{"1+2+3*4*5*6/7/8-9-10-11-12", false, "[Base():[Func(-):[Func(+):Number(1),Number(2),[Func(/):[Func(*):Number(3),Number(4),Number(5),Number(6)],Number(7),Number(8)]],Number(9),Number(10),Number(11),Number(12)]]"},
+		//26 Test Parsing of functions with brackets.
 		{"3*(1+2)", false, "[Base():[Func(*):Number(3),[Group(()):[Func(+):Number(1),Number(2)]]]]"},             //26
 		{"(1+2)*3", false, "[Base():[Func(*):[Group(()):[Func(+):Number(1),Number(2)]],Number(3)]]"},             //27
 		{"4*(1+2)*3", false, "[Base():[Func(*):Number(4),[Group(()):[Func(+):Number(1),Number(2)]],Number(3)]]"}, //28
+		//29 Test Parsing of functions with variables.
+		{"1+x", false, "[Base():[Func(+):Number(1),Identity(x)]]"},                                                                                                   //29 Test parsing of variabe
+		{"2*x+y+(z+x)*4", false, "[Base():[Func(+):[Func(*):Number(2),Identity(x)],Identity(y),[Func(*):[Group(()):[Func(+):Identity(z),Identity(x)]],Number(4)]]]"}, //30
+		{"x+1 y", true, "[Base():[Func(+):Identity(x),Number(1),[Base():[ERROR: Line: 1, Near \"\", Error: Unexpected end of expression. '' not parsed. ]]]]"},       //31 Test expression parsing stopping after end of expression.
+		{"x=y*3", false, "[Base():[Func(=):Identity(x),[Group():[Func(*):Identity(y),Number(3)]]]]"},
 	}
 
-	for i, v := range testValues[26:] {
-		node := Parse(v.value)
+	for i, v := range testValues {
+		node, err := Parse(v.value)
+		if err != nil && !v.haserror {
+			t.Errorf("%v. %q:\nError:%s\nparsed:%s", i, v.value, err.Error(), node)
+			continue
+		}
+		if err == nil && v.haserror {
+			t.Errorf("%v. %q:\nNo Error Raised. Expecting and Error but none was returned.:\nparsed:%s", i, v.value, node)
+			continue
+		}
 		if node.String() != v.result {
 			t.Errorf("%v. %q:\nparsed to:%q\nexpected :%q\n\n", i, v.value, node, v.result)
 		}

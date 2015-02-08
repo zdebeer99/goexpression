@@ -44,6 +44,10 @@ func (this *Scanner) IsEOF() bool {
 	return int(this.pos) >= len(this.input)
 }
 
+func (this *Scanner) Size() int {
+	return len(this.input)
+}
+
 //Next returns the next rune in the input.
 func (this *Scanner) Next() rune {
 	this.safebackup = true
