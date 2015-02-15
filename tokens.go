@@ -89,19 +89,41 @@ func (this *IdentityToken) String() string {
 
 type FuncToken struct {
 	EmptyToken
-	Name string
+	Name      string
+	Arguments []*TreeNode
 }
 
 func NewFuncToken(name string) *FuncToken {
-	return &FuncToken{EmptyToken{CatFunction, nil}, name}
+	return &FuncToken{EmptyToken{CatFunction, nil}, name, make([]*TreeNode, 0)}
+}
+
+func (this *FuncToken) AddArgument(arg *TreeNode) {
+	this.Arguments = append(this.Arguments, arg)
 }
 
 func (this *FuncToken) String() string {
+	args := make([]string, len(this.Arguments))
+	for i, v := range this.Arguments {
+		args[i] = fmt.Sprintf("%s", strings.Replace(v.String(), "\n", ",", -1))
+	}
+	return fmt.Sprintf("Func %s(%s)", this.Name, args)
+}
+
+type LRFuncToken struct {
+	EmptyToken
+	Name string
+}
+
+func NewLRFuncToken(name string) *LRFuncToken {
+	return &LRFuncToken{EmptyToken{CatFunction, nil}, name}
+}
+
+func (this *LRFuncToken) String() string {
 	return fmt.Sprintf("Func(%s)", this.Name)
 }
 
 // OperatorPrecedence return true if the operator argument is lower than the current operator.
-func (this *FuncToken) OperatorPrecedence(operator string) int {
+func (this *LRFuncToken) OperatorPrecedence(operator string) int {
 	if strings.Contains("*/", operator) && strings.Contains("+-", this.Name) {
 		return 1
 	}
@@ -122,4 +144,17 @@ func NewGroupToken(group string) *GroupToken {
 
 func (this *GroupToken) String() string {
 	return fmt.Sprintf("Group(%s)", this.GroupType)
+}
+
+type TextToken struct {
+	EmptyToken
+	Text string
+}
+
+func NewTextToken(text string) *TextToken {
+	return &TextToken{EmptyToken{CatValue, nil}, text}
+}
+
+func (this *TextToken) String() string {
+	return fmt.Sprintf("%q", this.Text)
 }

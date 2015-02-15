@@ -45,10 +45,13 @@ func TestParseExpression(t *testing.T) {
 		{"(1+2)*3", false, "[Base():[Func(*):[Group(()):[Func(+):Number(1),Number(2)]],Number(3)]]"},             //27
 		{"4*(1+2)*3", false, "[Base():[Func(*):Number(4),[Group(()):[Func(+):Number(1),Number(2)]],Number(3)]]"}, //28
 		//29 Test Parsing of functions with variables.
-		{"1+x", false, "[Base():[Func(+):Number(1),Identity(x)]]"},                                                                                                   //29 Test parsing of variabe
-		{"2*x+y+(z+x)*4", false, "[Base():[Func(+):[Func(*):Number(2),Identity(x)],Identity(y),[Func(*):[Group(()):[Func(+):Identity(z),Identity(x)]],Number(4)]]]"}, //30
-		{"x+1 y", true, "[Base():[Func(+):Identity(x),Number(1),[Base():[ERROR: Line: 1, Near \"\", Error: Unexpected end of expression. '' not parsed. ]]]]"},       //31 Test expression parsing stopping after end of expression.
-		{"x=y*3", false, "[Base():[Func(=):Identity(x),[Group():[Func(*):Identity(y),Number(3)]]]]"},
+		{"1+x", false, "[Base():[Func(+):Number(1),Identity(x)]]"},                                                                                                                                                  //29 Test parsing of variabe
+		{"2*x+y+(z+x)*4", false, "[Base():[Func(+):[Func(*):Number(2),Identity(x)],Identity(y),[Func(*):[Group(()):[Func(+):Identity(z),Identity(x)]],Number(4)]]]"},                                                //30
+		{"x+1 y", true, "[Base():[Func(+):Identity(x),Number(1),[Base():[ERROR: Line: 1, near \" y\", Error: Unexpected end of expression. '' not parsed. ]]]]"},                                                    //31 Test expression parsing stopping after end of expression.
+		{"x=y*3", false, "[Base():[Func(=):Identity(x),[Group():[Func(*):Identity(y),Number(3)]]]]"},                                                                                                                //32
+		{"'hello'", false, "[Base():\"hello\"]"},                                                                                                                                                                    //33
+		{"function(var1,var2+3,'Hello')", false, "[Base():Func function([[Group():Identity(var1)] [Group():[Func(+):Identity(var2),Number(3)]] [Group():\"Hello\"]])]"},                                             //34
+		{"function(var1,var2+3,'Hello')+3*4", false, "[Base():[Func(+):Func function([[Group():Identity(var1)] [Group():[Func(+):Identity(var2),Number(3)]] [Group():\"Hello\"]]),[Func(*):Number(3),Number(4)]]]"}, //35
 	}
 
 	for i, v := range testValues {

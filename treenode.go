@@ -21,6 +21,14 @@ func (this *TreeNode) Parent() *TreeNode {
 	return this.parent
 }
 
+func (this *TreeNode) Root() *TreeNode {
+	p := this
+	for p.parent != nil {
+		p = p.parent
+	}
+	return p
+}
+
 // setParent sets the current nodes parent value.
 // Warning: does not add the node as a child
 func (this *TreeNode) setParent(element *TreeNode) {

@@ -41,6 +41,8 @@ As one of the reasons I am coding the project is to test the language go, I deci
 
 
 # Change Log
+2015-02-15 Added Function support
+2015-02-14 Added Text Values support
 2015-02-07 Refactored parser functions in parseXxx and branchXxx Functions
 2015-02-06 Fixed Bug with operator Presedence not working after brackets.
 2015-02-05 Busy with variables. Found Presedence bug.

@@ -5,16 +5,11 @@ import (
 	"unicode"
 )
 
-const charValidString string = "_$#@"
+const charValidString string = "_"
 
 // isSpace reports whether r is a space character.
 func IsSpace(r rune) bool {
 	return r == ' ' || r == '\t'
-}
-
-// isEndOfLine reports whether r is an end-of-line character.
-func IsEndOfLine(r rune) bool {
-	return r == '\r' || r == '\n'
 }
 
 func IsNumber(r rune) bool {

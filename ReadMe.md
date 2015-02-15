@@ -16,6 +16,10 @@ The purpose is to learn go and use the expression parser in other projects.
 - Operator precedence, Ex: 1+2*3 = 1+6 = 7
 - grouping () Ex: (1+2)*3
 - variables Ex: 1+x where x is passed as a variable to Eval.
+- only parsing works for;
+  - text values inclused in qoutes.
+  - functions with arguments, ex: myfunc(1,2)
+
 
 **Planned**
 

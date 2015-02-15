@@ -41,7 +41,7 @@ func (this *expression) switchOther(node *TreeNode) {
 }
 
 func (this *expression) switchFunction(node *TreeNode) float64 {
-	val1 := node.Value.(*FuncToken)
+	val1 := node.Value.(*LRFuncToken)
 	switch val1.Name {
 	case "+":
 		return this.evalMathOperator(this.evalMathPlus, node.Items())
@@ -64,7 +64,7 @@ func (this *expression) getNumber(node *TreeNode) float64 {
 	case *IdentityToken:
 		r1 := this.getValue(v)
 		return this.toFloat64(r1)
-	case *FuncToken:
+	case *LRFuncToken:
 		return this.switchFunction(node)
 	case *GroupToken:
 		if v.GroupType == "()" {

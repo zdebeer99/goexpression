@@ -31,6 +31,18 @@ func NewScanner(template string) *Scanner {
 	return &Scanner{input: template}
 }
 
+func (this *Scanner) StartPosition() int {
+	return int(this.start)
+}
+
+func (this *Scanner) SetPosition(pos int) {
+	this.pos = Pos(pos)
+}
+
+func (this *Scanner) SetStartPosition(pos int) {
+	this.start = Pos(pos)
+}
+
 // Token return the current selected text and move the start position to the current position
 func (this *Scanner) Commit() string {
 	r1 := this.input[this.start:this.pos]
@@ -48,6 +60,10 @@ func (this *Scanner) Size() int {
 	return len(this.input)
 }
 
+func (this *Scanner) MoveStart(pos int) {
+	this.start = this.start + Pos(pos)
+}
+
 //Next returns the next rune in the input.
 func (this *Scanner) Next() rune {
 	this.safebackup = true
@@ -60,6 +76,11 @@ func (this *Scanner) Next() rune {
 	this.pos += this.width
 	this.curr = r
 	return r
+}
+
+func (this *Scanner) Skip() {
+	this.Next()
+	this.Commit()
 }
 
 // Peek returns but does not consume the next rune in the input.
@@ -135,10 +156,10 @@ func (this *Scanner) SkipSpaces() {
 func (this *Scanner) SkipToNewLine() {
 	for {
 		r := this.Next()
-		if r == eof {
+		if this.IsEOF() {
 			break
 		}
-		if IsEndOfLine(r) {
+		if r == '\n' {
 			break
 		}
 	}

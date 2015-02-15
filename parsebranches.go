@@ -1,9 +1,14 @@
 package goexpression
 
+import "fmt"
+
 func (this *parser) pumpExpression() {
-	this.state = this.branchExpressionValuePart
+	this.state = branchExpressionValuePart
 	for this.state != nil {
-		this.state()
+		if this.err != nil {
+			break
+		}
+		this.state = this.state(this)
 	}
 	endo := this.commit()
 	if len(endo) > 0 || !this.scan.IsEOF() {
@@ -17,61 +22,112 @@ parse expressions
 */
 
 //
-func (this *parser) branchExpressionValuePart() bool {
+func branchExpressionValuePart(this *parser) stateFn {
 	scan := this.scan
 	scan.SkipSpaces()
 	if scan.IsEOF() {
-		this.state = nil
-		return true
+		return nil
 	}
 	if scan.ScanNumber() {
-		this.state = this.branchExpressionOperatorPart
 		this.add(NewNumberToken(scan.Commit()))
-		return true
+		return branchExpressionOperatorPart
 	}
 	if scan.ScanWord() {
-		this.state = this.branchExpressionOperatorPart
-		this.add(NewIdentityToken(scan.Commit()))
-		return true
+		return branchExpressionAfterWord
 	}
 	switch scan.Next() {
+	case '"', '\'':
+		scan.Backup()
+		txt := this.ParseText()
+		this.add(NewTextToken(txt))
+		return branchExpressionOperatorPart
 	case '(':
-		this.state = this.branchExpressionValuePart
 		this.parseOpenBracket()
-		return true
+		return branchExpressionValuePart
 	}
 	this.error("Unexpected token. ")
-	this.state = nil
-	return false
+	return nil
+}
+
+func branchExpressionAfterWord(this *parser) stateFn {
+	scan := this.scan
+	switch scan.Peek() {
+	case '(':
+		this.curr = this.add(NewFuncToken(scan.Commit()))
+		return branchFunctionArguments
+	}
+	this.add(NewIdentityToken(scan.Commit()))
+	return branchExpressionOperatorPart
+}
+
+func branchFunctionArguments(this *parser) stateFn {
+	scan := this.scan
+	r := scan.Next()
+	if r != '(' {
+		this.error("Expecting '(' before arguments.")
+	}
+	ftoken, ok := this.curr.Value.(*FuncToken)
+	if !ok {
+		this.error("Expecting function token to add arguments to.")
+		return nil
+	}
+	state := branchExpressionValuePart
+	currnode := this.curr
+	fmt.Println("Arguments thingy")
+	for {
+		this.curr = NewTreeNode(NewGroupToken(""))
+		for state != nil {
+			state = state(this)
+		}
+		r = scan.Next()
+		fmt.Printf("Scanned %c ", r)
+		switch r {
+		case ' ':
+			scan.Ignore()
+			continue
+		case ',':
+			ftoken.AddArgument(this.curr.Root())
+			state = branchExpressionValuePart
+			scan.Ignore()
+			continue
+		case ')':
+			fmt.Println("After )", this.curr)
+			ftoken.AddArgument(this.curr.Root())
+			this.curr = currnode.parent
+			scan.Ignore()
+			return branchExpressionOperatorPart
+		}
+		this.curr = currnode
+		if scan.IsEOF() {
+			this.error("Arguments missing end bracket. End of file reached.")
+			return nil
+		}
+		this.error("Invalid char in Arguments. %c", r)
+		return nil
+	}
 }
 
 //
-func (this *parser) branchExpressionOperatorPart() bool {
+func branchExpressionOperatorPart(this *parser) stateFn {
 	scan := this.scan
 	scan.SkipSpaces()
 
 	if scan.IsEOF() {
-		this.state = nil
-		return true
+		return nil
 	}
 	if scan.Accept("+-*/") {
-		this.state = this.branchExpressionValuePart
 		this.parseOperator()
-		return true
+		return branchExpressionValuePart
 	}
 	if scan.Accept("=") {
-		this.state = this.branchExpressionValuePart
 		this.parseLRFunc()
 		this.curr = this.add(NewGroupToken(""))
-		return true
+		return branchExpressionValuePart
 	}
 	switch scan.Next() {
 	case ')':
-		this.state = this.branchExpressionOperatorPart
-		this.parseCloseBracket()
-		return true
+		return this.parseCloseBracket()
 	}
 	scan.Rollback()
-	this.state = nil
-	return false
+	return nil
 }
