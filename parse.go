@@ -3,7 +3,6 @@ package goexpression
 import (
 	"fmt"
 	"github.com/zdebeer99/goexpression/scanner"
-	"strings"
 )
 
 type stateFn func(*parser) stateFn
@@ -91,18 +90,15 @@ func (this *parser) parseCloseBracket() stateFn {
 		if ok && v1.GroupType == "()" {
 			this.commit()
 			this.curr = this.curr.Parent()
-			fmt.Println("Inner Bracket reached.", this.curr)
 			return branchExpressionOperatorPart
 		}
 		if ok && v1.GroupType == "" {
 			//must be a bracket part of a parent loop, exit this sub loop.
 			this.scan.Backup()
-			fmt.Println("Outer Bracket reached.", this.curr)
 			return nil
 		}
 		if this.curr.Parent() == nil {
 			this.error("Brackets not closed.")
-			fmt.Println("Brackets not closed.", this.curr.String())
 			return nil
 		}
 		this.curr = this.curr.Parent()
@@ -110,29 +106,41 @@ func (this *parser) parseCloseBracket() stateFn {
 	panic("Should be impossible to reach this point.")
 }
 
+func (this *parser) AcceptOperator() bool {	
+	scan:=this.scan
+	for _,op:= range operatorList{
+		if scan.Prefix(op) {
+			return true
+		}
+	}
+	return false
+}
+
 //parseOperator
 func (this *parser) parseOperator() bool {
 	operator := this.commit()
 	lastnode := this.lastNode()
-	onode, ok := this.getCurr().(*LRFuncToken)
+	onode, ok := this.getCurr().(*OperatorToken)
 	//push excisting operator up in tree structure
 	if ok {
 		//operator is the same current operator ignore
-		if onode.Name == operator {
+		if onode.Operator == operator {
 			return true
 		}
 		//change order for */ presedence
-		if onode.OperatorPrecedence(operator) > 0 {
+		//fmt.Println(onode, operator, onode.Precedence(operator))		
+		if onode.Precedence(operator) > 0 {
 			if lastnode != nil {
-				this.curr = lastnode.Push(NewLRFuncToken(operator))
+				this.curr = lastnode.Push(NewOperatorToken(operator))
 				return true
 			}
 		}
 		//after */ presedence fallback and continue pushing +- operators from the bottom.
-		if onode.OperatorPrecedence(operator) < 0 {
+		if onode.Precedence(operator) < 0 {
 			for {
-				v1, ok := this.curr.Parent().Value.(*LRFuncToken)
-				if ok && strings.Index("+-", v1.Name) >= 0 {
+				v1, ok := this.curr.Parent().Value.(*OperatorToken)
+				//if ok && strings.Index("+-", v1.Name) >= 0 {
+				if ok && operators.Level(v1.Operator)>=0{
 					this.curr = this.curr.Parent()
 				} else {
 					break
@@ -140,12 +148,12 @@ func (this *parser) parseOperator() bool {
 			}
 		}
 		//standard operator push
-		this.curr = this.push(NewLRFuncToken(operator))
+		this.curr = this.push(NewOperatorToken(operator))
 		return true
 	}
 	//set previous found value as argument of the operator
 	if lastnode != nil {
-		this.curr = lastnode.Push(NewLRFuncToken(operator))
+		this.curr = lastnode.Push(NewOperatorToken(operator))
 	} else {
 		this.error(fmt.Sprintf("Expecting a value before operator %q", operator))
 		this.state = nil
@@ -155,12 +163,12 @@ func (this *parser) parseOperator() bool {
 
 //parseLRFunc
 func (this *parser) parseLRFunc() bool {
-	operator := this.commit()
+	lrfunc := this.commit()
 	lastnode := this.lastNode()
 	if lastnode != nil {
-		this.curr = lastnode.Push(NewLRFuncToken(operator))
+		this.curr = lastnode.Push(NewLRFuncToken(lrfunc))
 	} else {
-		this.error(fmt.Sprintf("Expecting a value before operator %q", operator))
+		this.error(fmt.Sprintf("Expecting a value before operator %q", lrfunc))
 		this.state = nil
 	}
 	return false

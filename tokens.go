@@ -109,6 +109,77 @@ func (this *FuncToken) String() string {
 	return fmt.Sprintf("Func %s(%s)", this.Name, args)
 }
 
+type OperatorToken struct {
+	EmptyToken
+	Operator string
+	lvl int
+}
+
+func NewOperatorToken(operator string) *OperatorToken {
+	op := &OperatorToken{EmptyToken{CatFunction, nil}, "",-1}
+	op.SetOperator(operator)
+	return op;
+}
+
+func (this *OperatorToken) SetOperator(operator string){
+	this.Operator=operator
+	this.lvl = operators.Level(operator)
+	if this.lvl < 0 {
+		panic(fmt.Errorf("Invalid Operator %q",operator))
+	}
+}
+
+// OperatorPrecedence return true if the operator argument is lower than the current operator.
+func (this *OperatorToken) Precedence(operator string) int {
+	lvl := operators.Level(operator)
+	switch{
+		case lvl==this.lvl:
+		return 0
+		case lvl>this.lvl:
+		return 1
+		case lvl<this.lvl:
+		return -1	
+	}
+	panic("Unreachable code")
+}
+
+func (this *OperatorToken) String() string {
+	return fmt.Sprintf("Func(%s)", this.Operator)
+}
+
+type OperatorPrecedence [][]string
+
+func (this OperatorPrecedence) Level(operator string) int {
+	for level, operators := range this{
+		for _, op := range operators{
+			if op==operator {
+				return 5-level
+			}
+		}
+	}
+	return -1
+}
+
+func (this OperatorPrecedence) All() []string {
+	out:=make([]string,0)
+	for _, operators := range this{
+		for _, op := range operators{
+			out = append(out, op)
+		}
+	}
+	return out
+}
+
+var operators OperatorPrecedence = OperatorPrecedence{
+	{"*","/","%"},
+	{"+","-",},
+	{"==","!=",">","<",">=","<=",},
+	{"&&","and",},
+	{"||","or",},
+}
+
+var operatorList []string = operators.All()
+
 type LRFuncToken struct {
 	EmptyToken
 	Name string
@@ -122,16 +193,6 @@ func (this *LRFuncToken) String() string {
 	return fmt.Sprintf("Func(%s)", this.Name)
 }
 
-// OperatorPrecedence return true if the operator argument is lower than the current operator.
-func (this *LRFuncToken) OperatorPrecedence(operator string) int {
-	if strings.Contains("*/", operator) && strings.Contains("+-", this.Name) {
-		return 1
-	}
-	if strings.Contains("+-", operator) && strings.Contains("*/", this.Name) {
-		return -1
-	}
-	return 0
-}
 
 type GroupToken struct {
 	EmptyToken

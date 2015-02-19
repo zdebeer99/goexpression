@@ -1,7 +1,5 @@
 package goexpression
 
-import "fmt"
-
 func (this *parser) pumpExpression() {
 	this.state = branchExpressionValuePart
 	for this.state != nil {
@@ -73,14 +71,12 @@ func branchFunctionArguments(this *parser) stateFn {
 	}
 	state := branchExpressionValuePart
 	currnode := this.curr
-	fmt.Println("Arguments thingy")
 	for {
 		this.curr = NewTreeNode(NewGroupToken(""))
 		for state != nil {
 			state = state(this)
 		}
 		r = scan.Next()
-		fmt.Printf("Scanned %c ", r)
 		switch r {
 		case ' ':
 			scan.Ignore()
@@ -91,7 +87,6 @@ func branchFunctionArguments(this *parser) stateFn {
 			scan.Ignore()
 			continue
 		case ')':
-			fmt.Println("After )", this.curr)
 			ftoken.AddArgument(this.curr.Root())
 			this.curr = currnode.parent
 			scan.Ignore()
@@ -115,7 +110,7 @@ func branchExpressionOperatorPart(this *parser) stateFn {
 	if scan.IsEOF() {
 		return nil
 	}
-	if scan.Accept("+-*/") {
+	if this.AcceptOperator() {
 		this.parseOperator()
 		return branchExpressionValuePart
 	}

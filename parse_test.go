@@ -52,6 +52,11 @@ func TestParseExpression(t *testing.T) {
 		{"'hello'", false, "[Base():\"hello\"]"},                                                                                                                                                                    //33
 		{"function(var1,var2+3,'Hello')", false, "[Base():Func function([[Group():Identity(var1)] [Group():[Func(+):Identity(var2),Number(3)]] [Group():\"Hello\"]])]"},                                             //34
 		{"function(var1,var2+3,'Hello')+3*4", false, "[Base():[Func(+):Func function([[Group():Identity(var1)] [Group():[Func(+):Identity(var2),Number(3)]] [Group():\"Hello\"]]),[Func(*):Number(3),Number(4)]]]"}, //35
+		{"1==1", false, "[Base():[Func(==):Number(1),Number(1)]]"},
+		{"1==1 and 2==2", false, "[Base():[Func(and):[Func(==):Number(1),Number(1)],[Func(==):Number(2),Number(2)]]]"},
+		{"1==1 && 2==2 || 5!=6", false, "[Base():[Func(||):[Func(&&):[Func(==):Number(1),Number(1)],[Func(==):Number(2),Number(2)]],[Func(!=):Number(5),Number(6)]]]"},		
+		{"1*2+3==3+1*2", false, "[Base():[Func(==):[Func(+):[Func(*):Number(1),Number(2)],Number(3)],[Func(+):Number(3),[Func(*):Number(1),Number(2)]]]]"},
+		{"1*2+3==3+1*2 && (5!=6 || 5==6)", false, "[Base():[Func(&&):[Func(==):[Func(+):[Func(*):Number(1),Number(2)],Number(3)],[Func(+):Number(3),[Func(*):Number(1),Number(2)]]],[Group(()):[Func(||):[Func(!=):Number(5),Number(6)],[Func(==):Number(5),Number(6)]]]]]"},
 	}
 
 	for i, v := range testValues {
