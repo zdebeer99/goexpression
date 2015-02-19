@@ -17,14 +17,16 @@ The purpose is to learn go and use the expression parser in other projects.
 - grouping () Ex: (1+2)*3
 - variables Ex: 1+x where x is passed as a variable to Eval.
 - only parsing works for;
-  - text values inclused in qoutes.
-  - functions with arguments, ex: myfunc(1,2)
+- Define a variable Ex: x=6
 
+**Parsing only**
+- Text values inclused in qoutes.
+- Functions with arguments, ex: myfunc(1,2)
+- Boolean types and expressions like '==', '<', '>', '!', 'and', 'or'
 
 **Planned**
 
-- Define a variable Ex: x=6
-- Boolean types and expressions like '==', '<', '>', '!', 'and', 'or'
+
 - Special keywords like. if, each, etc
 - Calling go functions from the expression
 
