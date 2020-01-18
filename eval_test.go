@@ -24,6 +24,7 @@ func TestMathEval(t *testing.T) {
 	}
 	var tests []mathTestValue = []mathTestValue{
 		//Test Basic Calculations
+		{"2^2", false, 4},
 		{"1+1", false, 2},
 		{"-1+2", false, 1},
 		{"2-1", false, 1},
