@@ -1,5 +1,9 @@
 package goexpression
 
+import (
+	"math"
+)
+
 type expression struct {
 	ast     *TreeNode
 	context map[string]interface{}
@@ -51,6 +55,8 @@ func (this *expression) switchFunction(node *TreeNode) float64 {
 		return this.evalMathOperator(this.evalMathMultiply, node.Items())
 	case "/":
 		return this.evalMathOperator(this.evalMathDevide, node.Items())
+	case "^":
+		return this.evalMathOperator(this.evalMathPower, node.Items())
 	default:
 		panic("Function not supported")
 	}
@@ -106,6 +112,10 @@ func (this *expression) evalMathMultiply(val1, val2 float64) float64 {
 
 func (this *expression) evalMathDevide(val1, val2 float64) float64 {
 	return val1 / val2
+}
+
+func (this *expression) evalMathPower(val1, val2 float64) float64 {
+	return math.Pow(val1, val2)
 }
 
 //Get a value from the context.
