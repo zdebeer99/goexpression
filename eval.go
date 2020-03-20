@@ -4,6 +4,10 @@ import (
 	"math"
 )
 
+type Floater interface {
+	Float64() float64
+}
+
 type expression struct {
 	ast     *TreeNode
 	context map[string]interface{}
@@ -135,6 +139,8 @@ func (this *expression) toFloat64(value interface{}) float64 {
 		return float64(i)
 	case int:
 		return float64(i)
+	case Floater:
+		return i.Float64()
 	default:
 		panic("toFloat: unknown value is of incompatible type")
 	}

@@ -57,3 +57,28 @@ func TestMathEval(t *testing.T) {
 
 	}
 }
+
+type MyNumber struct {
+	Value float64
+}
+
+func (m MyNumber) Float64() float64 {
+	return m.Value
+}
+
+func TestEvalContextSetupWithFloater(t *testing.T) {
+	ctx := map[string]interface{}{
+		"x": MyNumber{Value: 5},
+		"y": MyNumber{Value: 6},
+	}
+
+	expected := 11.0
+
+	// Act
+	actual := Eval("x+y", ctx)
+
+	// Assert
+	if actual != expected {
+		t.Fatalf("invalid result! got=%v; want=%v", actual, expected)
+	}
+}
