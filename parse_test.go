@@ -3,7 +3,7 @@ package goexpression
 import (
 	"testing"
 
-	s "./scanner"
+	s "github.com/zdebeer99/goexpression/scanner"
 )
 
 type TestValue struct {
